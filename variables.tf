@@ -170,3 +170,9 @@ variable "ssl_certificate_pfx_password" {
   description = "(optional) PFX certificate password. Should be set if ssl_certificate_pfx_data is set"
   default     = null
 }
+
+variable "public_ip_domain_name_label" {
+  type        = string
+  description = "(Optional) A domain name label that should reference the public IP"
+  default     = null
+}

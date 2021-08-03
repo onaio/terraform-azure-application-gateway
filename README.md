@@ -133,3 +133,5 @@ probes: [
   - `include_path`: Whether or not to include the path in the redirected Url
   - `include_query_string`: Whether or not to include the query string in the redirected Url
 
+**`public_ip_domain_name_label`**: (Optional) A domain name label that should reference the public IP
+

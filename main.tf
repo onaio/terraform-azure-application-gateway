@@ -34,6 +34,7 @@ data "azurerm_subnet" "backend" {
 
 resource "azurerm_public_ip" "frontend" {
   name                = "${var.application_gateway_name}-pip"
+  domain_name_label   = var.public_ip_domain_name_label
   resource_group_name = data.azurerm_resource_group.existing.name
   location            = data.azurerm_resource_group.existing.location
   allocation_method   = var.application_gateway_sku_tier == "Standard" ? "Dynamic" : "Static"
