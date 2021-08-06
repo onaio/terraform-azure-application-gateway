@@ -146,7 +146,7 @@ resource "azurerm_application_gateway" "main" {
       unhealthy_threshold = probe.value.unhealthy_threshold
       match {
         body         = probe.value.match_body
-        status_codes = probe.value.match_status_codes
+        status_code  = probe.value.match_status_codes
       }
 
       pick_host_name_from_backend_http_settings = true
