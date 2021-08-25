@@ -132,7 +132,8 @@ resource "azurerm_application_gateway" "main" {
       protocol                            = backend_http_settings.value.protocol
       request_timeout                     = backend_http_settings.value.request_timeout
       probe_name                          = backend_http_settings.value.probe_name
-      pick_host_name_from_backend_address = true
+      host_name                           = backend_http_settings.value.host_name
+      pick_host_name_from_backend_address = backend_http_settings.value.pick_host_name_from_backend_address
     }
   }
   dynamic "probe" {
@@ -149,7 +150,7 @@ resource "azurerm_application_gateway" "main" {
         status_code  = probe.value.match_status_codes
       }
 
-      pick_host_name_from_backend_http_settings = true
+      pick_host_name_from_backend_http_settings = probe.value.pick_host_name_from_backend_http_settings
     }
   }
 

@@ -65,13 +65,15 @@ variable "backend_address_pools" {
 variable "backend_http_settings" {
   description = "List of backend HTTP settings."
   type = list(object({
-    name                         = string
-    path                         = string
-    port                         = number
-    protocol                     = string
-    enable_cookie_based_affinity = bool
-    request_timeout              = number
-    probe_name                   = string
+    name                                = string
+    path                                = string
+    port                                = number
+    protocol                            = string
+    enable_cookie_based_affinity        = bool
+    request_timeout                     = number
+    probe_name                          = string
+    host_name                           = string
+    pick_host_name_from_backend_address = bool
   }))
 }
 
@@ -79,14 +81,15 @@ variable "probes" {
   description = "Health probes used to test backend health."
   default     = []
   type = list(object({
-    name                = string
-    path                = string
-    protocol            = string
-    interval            = number
-    timeout             = number
-    unhealthy_threshold = number
-    match_body          = string
-    match_status_codes  = list(string)
+    name                                      = string
+    path                                      = string
+    protocol                                  = string
+    interval                                  = number
+    timeout                                   = number
+    unhealthy_threshold                       = number
+    match_body                                = string
+    match_status_codes                        = list(string)
+    pick_host_name_from_backend_http_settings = bool
   }))
 }
 

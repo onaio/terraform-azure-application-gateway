@@ -58,6 +58,8 @@ http_listeners = [
   - `enable_cookie_based_affinity`: Keep a user session on the same server. This will direct subsequent traffic from a user session to the same server for processing.
   - `request_timeout`: Maximum time in seconds to wait for a response which must be between 1 and 86400 seconds.
   - `probe_name`: Name of an associated HTTP probe. Set to `null` if no custom health probe is needed.
+  - `host_name`: Host header to be sent to the backend servers. Should be set to `null` if `pick_host_name_from_backend_address` is set to true
+  - `pick_host_name_from_backend_address`: Whether host header should be picked from the host name of the backend server.
 
 Example:
 
@@ -96,6 +98,8 @@ Example:
   - `unhealthy_threshold`: The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
   - `match_body`: A snippet from the response body which must be present for the probe target to be considered healthy
   - `match_status_codes`: A list of status codes from the request response that indicate a probe target is healthy
+  - `pick_host_name_from_backend_http_settings`: Whether the host header should be picked from the backend http settings.
+  - `host`: The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe. Should be set to `null` if `pick_host_name_from_backend_http_settings` is set to `true`.
 
 Example:
 
