@@ -153,17 +153,56 @@ variable "tags" {
 }
 
 variable "ssl_certificates" {
-    description = "List of SSL Certificates to attach to the application gateway."
-    type = list(object({
-        name                = string
-        pfx_data            = string
-        pfx_password        = string
-        key_vault_secret_id = string
-    }))
+  description = "List of SSL Certificates to attach to the application gateway."
+  type = list(object({
+    name                = string
+    pfx_data            = string
+    pfx_password        = string
+    key_vault_secret_id = string
+  }))
 }
 
 variable "public_ip_domain_name_label" {
   type        = string
   description = "(Optional) A domain name label that should reference the public IP"
   default     = null
+}
+
+variable "waf_enabled" {
+  type        = bool
+  description = "Whether the Web Application Firewall should be enabled."
+  default     = false
+}
+
+variable "waf_firewall_mode" {
+  type        = string
+  description = "The Web Application Firewall mode. Possible values are 'Detection' and 'Prevention'."
+  default     = "Detection"
+}
+
+variable "waf_rule_set_type" {
+  type        = string
+  description = "The type of rule set that should be used by the Web Application Firewall."
+  default     = "OWASP"
+}
+
+variable "waf_rule_set_version" {
+  type        = string
+  description = "The version of the rule set used for the Web Application Firewall."
+  default     = "3.1"
+}
+
+variable "waf_file_upload_limit" {
+  type        = number
+  description = "(Optional) The file upload limit in megabytes. Defaults to 100MB"
+}
+
+variable "waf_require_body_check" {
+  type        = bool
+  description = "(Optional) Whether request body inspection should be enabled. Defaults to true"
+}
+
+variable "waf_max_request_body_size_kb" {
+  type        = number
+  description = "(Optional) The maximum request body size in kilobytes. Defaults to 128KB"
 }

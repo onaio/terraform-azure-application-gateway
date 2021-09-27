@@ -80,6 +80,17 @@ resource "azurerm_application_gateway" "main" {
     subnet_id = data.azurerm_subnet.frontend.id
   }
 
+  waf_configuration {
+    enabled                  = var.waf_enabled
+    firewall_mode            = var.waf_firewall_mode
+    rule_set_type            = var.waf_rule_set_type
+    rule_set_version         = var.waf_rule_set_version
+    disabled_rule_group      = var.waf_disabled_rule_group != null ? var.waf_disabled_rule_group : null
+    file_upload_limit        = var.waf_file_upload_limit != null ? var.waf_file_upload_limit : 100
+    require_body_check       = var.waf_request_body_check != null ? var.waf_request_body_check : true
+    max_request_body_size_kb = var.waf_max_request_body_size_kb != null ? var.waf_max_request_body_size_kb : 128
+  }
+
   dynamic "ssl_certificate" {
       for_each = var.ssl_certificates
       content {
