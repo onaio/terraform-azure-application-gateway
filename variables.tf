@@ -152,26 +152,14 @@ variable "tags" {
   default = ({})
 }
 
-variable "ssl_certificate_name" {
-  type        = string
-  description = "Name of the SSL certificate to create. This is the name to be used by HTTP listeners"
-}
-
-variable "ssl_certificate_key_vault_secret_id" {
-  type        = string
-  description = "(optional) Resource ID of an Azure key-vault certificate to use. Should be set if ssl_certificate_pfx_data is not set"
-}
-
-variable "ssl_certificate_pfx_data" {
-  type        = string
-  description = "(optional) PFX certificate to use. Should be set if ssl_certificate_key_vault_secret_id is not set"
-  default     = null
-}
-
-variable "ssl_certificate_pfx_password" {
-  type        = string
-  description = "(optional) PFX certificate password. Should be set if ssl_certificate_pfx_data is set"
-  default     = null
+variable "ssl_certificates" {
+    description = "List of SSL Certificates to attach to the application gateway."
+    type = list(object({
+        name                = string
+        pfx_data            = string
+        pfx_password        = string
+        key_vault_secret_id = string
+    }))
 }
 
 variable "public_ip_domain_name_label" {

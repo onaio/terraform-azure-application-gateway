@@ -80,12 +80,14 @@ resource "azurerm_application_gateway" "main" {
     subnet_id = data.azurerm_subnet.frontend.id
   }
 
-  ssl_certificate {
-    name = var.ssl_certificate_name
-    # data and key_vault_secret_id are mutually exclusive. If both are set, only the key_vault_id will be used
-    data                = var.ssl_certificate_key_vault_secret_id != null ? null : var.ssl_certificate_pfx_data
-    password            = var.ssl_certificate_key_vault_secret_id != null ? null : var.ssl_certificate_pfx_password
-    key_vault_secret_id = var.ssl_certificate_key_vault_secret_id != null ? var.ssl_certificate_key_vault_secret_id : null
+  dynamic "ssl_certificate" {
+      for_each = var.ssl_certificates
+      content {
+        name                = ssl_certificate.value.name
+        data                = ssl_certificate.value.key_vault_secret_id != null ? null : ssl_certificate.value.pfx_data
+        password            = ssl_certificate.value.key_vault_secret_id != null ? null : ssl_certificate.value.pfx_password
+        key_vault_secret_id = ssl_certificate.value.key_vault_secret_id != null ? ssl_certificate.value.key_vault_secret_id : null
+      }
   }
 
   dynamic "identity" {
