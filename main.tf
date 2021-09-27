@@ -85,20 +85,34 @@ resource "azurerm_application_gateway" "main" {
     firewall_mode            = var.waf_firewall_mode
     rule_set_type            = var.waf_rule_set_type
     rule_set_version         = var.waf_rule_set_version
-    disabled_rule_group      = var.waf_disabled_rule_group != null ? var.waf_disabled_rule_group : null
-    file_upload_limit        = var.waf_file_upload_limit != null ? var.waf_file_upload_limit : 100
-    require_body_check       = var.waf_request_body_check != null ? var.waf_request_body_check : true
-    max_request_body_size_kb = var.waf_max_request_body_size_kb != null ? var.waf_max_request_body_size_kb : 128
+    file_upload_limit_mb     = var.waf_file_upload_limit_mb
+    request_body_check       = var.waf_request_body_check
+    max_request_body_size_kb = var.waf_max_request_body_size_kb
   }
 
   dynamic "ssl_certificate" {
-      for_each = var.ssl_certificates
-      content {
-        name                = ssl_certificate.value.name
-        data                = ssl_certificate.value.key_vault_secret_id != null ? null : ssl_certificate.value.pfx_data
-        password            = ssl_certificate.value.key_vault_secret_id != null ? null : ssl_certificate.value.pfx_password
-        key_vault_secret_id = ssl_certificate.value.key_vault_secret_id != null ? ssl_certificate.value.key_vault_secret_id : null
+    for_each = var.ssl_certificates
+    content {
+      name                = ssl_certificate.value.name
+      data                = var.ssl_certificate_key_vault_secret_id != null ? null : ssl_certificate.value.pfx_data
+      password            = var.ssl_certificate_key_vault_secret_id != null ? null : ssl_certificate.value.pfx_password
+      key_vault_secret_id = var.ssl_certificate_key_vault_secret_id != null ? var.ssl_certificate_key_vault_secret_id : null
+    }
+  }
+
+  dynamic "ssl_profile" {
+    for_each = var.ssl_certificates
+    content {
+      name                             = ssl_profile.value.name
+      trusted_client_certificate_names = [ssl_profile.value.name]
+      verify_client_cert_issuer_dn     = false
+      ssl_policy {
+        cipher_suites      = []
+        disabled_protocols = []
+        policy_name        = "AppGwSslPolicy20170401"
+        policy_type        = "Predefined"
       }
+    }
   }
 
   dynamic "identity" {
@@ -159,8 +173,8 @@ resource "azurerm_application_gateway" "main" {
       timeout             = probe.value.timeout
       unhealthy_threshold = probe.value.unhealthy_threshold
       match {
-        body         = probe.value.match_body
-        status_code  = probe.value.match_status_codes
+        body        = probe.value.match_body
+        status_code = probe.value.match_status_codes
       }
 
       pick_host_name_from_backend_http_settings = probe.value.pick_host_name_from_backend_http_settings

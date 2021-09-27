@@ -155,11 +155,15 @@ variable "tags" {
 variable "ssl_certificates" {
   description = "List of SSL Certificates to attach to the application gateway."
   type = list(object({
-    name                = string
-    pfx_data            = string
-    pfx_password        = string
-    key_vault_secret_id = string
+    name         = string
+    pfx_data     = string
+    pfx_password = string
   }))
+}
+
+variable "ssl_certificate_key_vault_secret_id" {
+  type        = string
+  description = "(optional) Resource ID of an Azure key-vault certificate to use. Should be set if ssl_certificate_pfx_data is not set"
 }
 
 variable "public_ip_domain_name_label" {
@@ -170,8 +174,8 @@ variable "public_ip_domain_name_label" {
 
 variable "waf_enabled" {
   type        = bool
-  description = "Whether the Web Application Firewall should be enabled."
-  default     = false
+  description = "Whether the Web Application Firewall should be enabled. Default to true"
+  default     = true
 }
 
 variable "waf_firewall_mode" {
@@ -189,20 +193,36 @@ variable "waf_rule_set_type" {
 variable "waf_rule_set_version" {
   type        = string
   description = "The version of the rule set used for the Web Application Firewall."
-  default     = "3.1"
+  default     = "3.0"
 }
 
-variable "waf_file_upload_limit" {
+variable "waf_file_upload_limit_mb" {
   type        = number
   description = "(Optional) The file upload limit in megabytes. Defaults to 100MB"
+  default     = 100
 }
 
-variable "waf_require_body_check" {
+variable "waf_request_body_check" {
   type        = bool
   description = "(Optional) Whether request body inspection should be enabled. Defaults to true"
+  default     = true
 }
 
 variable "waf_max_request_body_size_kb" {
   type        = number
   description = "(Optional) The maximum request body size in kilobytes. Defaults to 128KB"
+  default     = 128
 }
+
+variable "key_vault_ssl_certificates" {
+  type        = list(string)
+  description = "List of SSL Certificates that are stored within the key vault"
+  default     = []
+}
+
+variable "key_vault_id" {
+  type        = string
+  description = "Identifier for the Key vault that the SSL Certificates are stored in"
+  default     = null
+}
+
