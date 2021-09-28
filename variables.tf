@@ -155,15 +155,11 @@ variable "tags" {
 variable "ssl_certificates" {
   description = "List of SSL Certificates to attach to the application gateway."
   type = list(object({
-    name         = string
-    pfx_data     = string
-    pfx_password = string
+    name                = string
+    pfx_data            = string
+    pfx_password        = string
   }))
-}
-
-variable "ssl_certificate_key_vault_secret_id" {
-  type        = string
-  description = "(optional) Resource ID of an Azure key-vault certificate to use. Should be set if ssl_certificate_pfx_data is not set"
+  default = []
 }
 
 variable "public_ip_domain_name_label" {
@@ -216,7 +212,7 @@ variable "waf_max_request_body_size_kb" {
 
 variable "key_vault_ssl_certificates" {
   type        = list(string)
-  description = "List of SSL Certificates that are stored within the key vault"
+  description = "List of SSL Certificates that are stored within the key vault that should be attached to the application gateway"
   default     = []
 }
 
