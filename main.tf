@@ -20,6 +20,12 @@ data "azurerm_virtual_network" "existing" {
   resource_group_name = data.azurerm_resource_group.existing.name
 }
 
+data "azurerm_key_vault_certificate" "existing" {
+  count        = length(var.key_vault_ssl_certificates)
+  key_vault_id = var.key_vault_id
+  name         = var.key_vault_ssl_certificates[count.index]
+}
+
 data "azurerm_subnet" "frontend" {
   name                 = var.frontend_subnet_name
   resource_group_name  = data.azurerm_resource_group.existing.name
@@ -42,7 +48,7 @@ resource "azurerm_public_ip" "frontend" {
 }
 
 resource "azurerm_user_assigned_identity" "keyvault" {
-  count               = var.ssl_certificate_key_vault_secret_id != null ? 1 : 0
+  count               = length(var.key_vault_ssl_certificates) > 0 ? 1 : 0
   resource_group_name = data.azurerm_resource_group.existing.name
   location            = data.azurerm_resource_group.existing.location
 
@@ -80,28 +86,73 @@ resource "azurerm_application_gateway" "main" {
     subnet_id = data.azurerm_subnet.frontend.id
   }
 
-  ssl_certificate {
-    name = var.ssl_certificate_name
-    # data and key_vault_secret_id are mutually exclusive. If both are set, only the key_vault_id will be used
-    data                = var.ssl_certificate_key_vault_secret_id != null ? null : var.ssl_certificate_pfx_data
-    password            = var.ssl_certificate_key_vault_secret_id != null ? null : var.ssl_certificate_pfx_password
-    key_vault_secret_id = var.ssl_certificate_key_vault_secret_id != null ? var.ssl_certificate_key_vault_secret_id : null
+  waf_configuration {
+    enabled                  = var.waf_enabled
+    firewall_mode            = var.waf_firewall_mode
+    rule_set_type            = var.waf_rule_set_type
+    rule_set_version         = var.waf_rule_set_version
+    file_upload_limit_mb     = var.waf_file_upload_limit_mb
+    request_body_check       = var.waf_request_body_check
+    max_request_body_size_kb = var.waf_max_request_body_size_kb
+  }
+
+  dynamic "ssl_certificate" {
+    for_each = data.azurerm_key_vault_certificate.existing
+    content {
+      name                = ssl_certificate.value.name
+      key_vault_secret_id = ssl_certificate.value.secret_id
+      data                = null
+      password            = null
+    }
+  }
+
+  dynamic "ssl_certificate" {
+    for_each = var.ssl_certificates
+    content {
+      name                = ssl_certificate.value.name
+      data                = ssl_certificate.value.pfx_data
+      password            = ssl_certificate.value.pfx_password
+      key_vault_secret_id = null
+    }
+  }
+
+  dynamic "ssl_profile" {
+    for_each = data.azurerm_key_vault_certificate.existing
+    content {
+      name = ssl_profile.value.name
+      trusted_client_certificate_names = [ssl_profile.value.name]
+      verify_client_cert_issuer_dn = false
+      ssl_policy {
+        cipher_suites      = []
+        disabled_protocols = []
+        policy_name        = "AppGwSslPolicy20170401"
+        policy_type        = "Predefined"
+      }
+    }
   }
 
   dynamic "identity" {
-    for_each = var.ssl_certificate_key_vault_secret_id != null ? [1] : []
+    for_each = length(var.key_vault_ssl_certificates) > 0 ? [1] : []
     content {
       type         = "UserAssigned"
       identity_ids = [azurerm_user_assigned_identity.keyvault[0].id]
     }
-
   }
+
   dynamic "backend_address_pool" {
     for_each = var.backend_address_pools
     content {
       name         = backend_address_pool.value.name
       ip_addresses = backend_address_pool.value.ip_addresses
       fqdns        = backend_address_pool.value.fqdns
+    }
+  }
+
+  dynamic "trusted_client_certificate" {
+    for_each = data.azurerm_key_vault_certificate.existing
+    content {
+      name = trusted_client_certificate.value.name
+      data = trusted_client_certificate.value.certificate_data_base64
     }
   }
 
@@ -146,8 +197,8 @@ resource "azurerm_application_gateway" "main" {
       timeout             = probe.value.timeout
       unhealthy_threshold = probe.value.unhealthy_threshold
       match {
-        body         = probe.value.match_body
-        status_code  = probe.value.match_status_codes
+        body        = probe.value.match_body
+        status_code = probe.value.match_status_codes
       }
 
       pick_host_name_from_backend_http_settings = probe.value.pick_host_name_from_backend_http_settings

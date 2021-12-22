@@ -23,6 +23,33 @@ Example:
     }
   ]
 ```
+
+**`ssl_certificates`**: List of SSL certificates to attach to the application gateway. Each list item should define
+
+  - `name`: Name of the SSL Certificate
+  - `pfx_data`: The PFX Content of the SSL Certificate
+  - `pfx_password`: The password used by the SSL Certificate
+
+Example:
+
+```hcl
+ssl_certificates = [
+  {
+    name         = "frontend-cert"
+    pfx_data     = "some-pfx-data"
+    pfx_password = "passw0rd"
+  }
+]
+```
+
+**`key_vault_ssl_certificates`**: List of SSL Certificate names that are present within a Key vault that should be attached to the application gateway.
+
+Example:
+
+```hcl
+key_vault_ssl_certificates = ["frontend-io-cert", "backend-io-cert"]
+```
+
 **`http_listeners`**: List of HTTP Listeners to be created. Each list item should define
     - `name` : Name of the listener
     - `ssl_certificate_name`: (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
