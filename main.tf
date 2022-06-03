@@ -116,20 +116,6 @@ resource "azurerm_application_gateway" "main" {
     }
   }
 
-  dynamic "ssl_profile" {
-    for_each = data.azurerm_key_vault_certificate.existing
-    content {
-      name = ssl_profile.value.name
-      trusted_client_certificate_names = [ssl_profile.value.name]
-      verify_client_cert_issuer_dn = false
-      ssl_policy {
-        cipher_suites      = []
-        disabled_protocols = []
-        policy_name        = "AppGwSslPolicy20170401"
-        policy_type        = "Predefined"
-      }
-    }
-  }
 
   dynamic "identity" {
     for_each = length(var.key_vault_ssl_certificates) > 0 ? [1] : []
@@ -145,14 +131,6 @@ resource "azurerm_application_gateway" "main" {
       name         = backend_address_pool.value.name
       ip_addresses = backend_address_pool.value.ip_addresses
       fqdns        = backend_address_pool.value.fqdns
-    }
-  }
-
-  dynamic "trusted_client_certificate" {
-    for_each = data.azurerm_key_vault_certificate.existing
-    content {
-      name = trusted_client_certificate.value.name
-      data = trusted_client_certificate.value.certificate_data_base64
     }
   }
 
