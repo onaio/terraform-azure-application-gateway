@@ -50,6 +50,8 @@ Example:
 key_vault_ssl_certificates = ["frontend-io-cert", "backend-io-cert"]
 ```
 
+Certificates from `ssl_certificates` and `key_vault_ssl_certificates` are only applied when the gateway is created. After that the module ignores changes to them and keeps the certificates on the gateway, including any added or renewed outside Terraform. To add or replace a certificate on an existing gateway, do it on the gateway itself (portal or `az network application-gateway ssl-cert`), then name it in a listener's `ssl_certificate_name`.
+
 **`http_listeners`**: List of HTTP Listeners to be created. Each list item should define
     - `name` : Name of the listener
     - `ssl_certificate_name`: (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
@@ -87,6 +89,7 @@ http_listeners = [
   - `probe_name`: Name of an associated HTTP probe. Set to `null` if no custom health probe is needed.
   - `host_name`: Host header to be sent to the backend servers. Should be set to `null` if `pick_host_name_from_backend_address` is set to true
   - `pick_host_name_from_backend_address`: Whether host header should be picked from the host name of the backend server.
+  - `trusted_root_certificate_names`: (Optional) Names of entries in `trusted_root_certificates` used to validate an `Https` backend's certificate. Leave unset when the backend's certificate is signed by a well-known CA.
 
 Example:
 
@@ -114,6 +117,37 @@ Example:
   ]
 ```
 
+**`trusted_root_certificates`**: (Optional) Trusted root certificates for `Https` backends whose certificates aren't signed by a well-known CA, such as self-signed ones. Each item should have
+
+  - `name`: Name of the trusted root certificate, as named in `trusted_root_certificate_names`
+  - `data`: The certificate's public data, base64 encoded. Set either this or `key_vault_secret_id`
+  - `key_vault_secret_id`: The ID of a Key Vault secret holding the certificate. Set either this or `data`
+
+Example:
+
+```hcl
+trusted_root_certificates = [
+  {
+    name = "backend-root"
+    data = filebase64("certs/backend-root.cer")
+  }
+]
+
+backend_http_settings = [
+  {
+    name                                = "api"
+    path                                = "/"
+    port                                = 443
+    protocol                            = "Https"
+    enable_cookie_based_affinity        = true
+    request_timeout                     = 60
+    probe_name                          = null
+    host_name                           = "api.example.com"
+    pick_host_name_from_backend_address = false
+    trusted_root_certificate_names      = ["backend-root"]
+  }
+]
+```
 
 **`probes`**:(Optional) List of health probes used to test backend health. Each probe item should have
 

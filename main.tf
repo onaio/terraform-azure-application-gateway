@@ -1,3 +1,7 @@
+terraform {
+  required_version = ">= 1.3"
+}
+
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
   http_frontend_port_name         = "${var.application_gateway_name}-http-port"
@@ -163,6 +167,16 @@ resource "azurerm_application_gateway" "main" {
       probe_name                          = backend_http_settings.value.probe_name
       host_name                           = backend_http_settings.value.host_name
       pick_host_name_from_backend_address = backend_http_settings.value.pick_host_name_from_backend_address
+      trusted_root_certificate_names      = backend_http_settings.value.trusted_root_certificate_names
+    }
+  }
+
+  dynamic "trusted_root_certificate" {
+    for_each = var.trusted_root_certificates
+    content {
+      name                = trusted_root_certificate.value.name
+      data                = trusted_root_certificate.value.data
+      key_vault_secret_id = trusted_root_certificate.value.key_vault_secret_id
     }
   }
   dynamic "probe" {
@@ -229,4 +243,12 @@ resource "azurerm_application_gateway" "main" {
   }
 
   tags = var.tags
+
+  # Certificates are only read from the configuration when the gateway is
+  # created. Afterwards the ones on the gateway are kept, including any added
+  # or renewed outside Terraform: the provider can't name an existing
+  # certificate without its PFX data or Key Vault secret.
+  lifecycle {
+    ignore_changes = [ssl_certificate]
+  }
 }
