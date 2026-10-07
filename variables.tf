@@ -74,7 +74,26 @@ variable "backend_http_settings" {
     probe_name                          = string
     host_name                           = string
     pick_host_name_from_backend_address = bool
+    trusted_root_certificate_names      = optional(list(string))
   }))
+}
+
+variable "trusted_root_certificates" {
+  description = "Trusted root certificates that backend HTTP settings can name to validate their backends' certificates. Each needs either `data` or `key_vault_secret_id`."
+  type = list(object({
+    name                = string
+    data                = optional(string)
+    key_vault_secret_id = optional(string)
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for cert in var.trusted_root_certificates :
+      (cert.data == null) != (cert.key_vault_secret_id == null)
+    ])
+    error_message = "Each trusted root certificate needs exactly one of `data` or `key_vault_secret_id`."
+  }
 }
 
 variable "probes" {
