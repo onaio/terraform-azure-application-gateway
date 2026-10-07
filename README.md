@@ -50,6 +50,7 @@ Example:
 key_vault_ssl_certificates = ["frontend-io-cert", "backend-io-cert"]
 ```
 
+Certificates from `ssl_certificates` and `key_vault_ssl_certificates` are only applied when the gateway is created. After that the module ignores changes to them and keeps the certificates on the gateway, including any added or renewed outside Terraform. To add or replace a certificate on an existing gateway, do it on the gateway itself (portal or `az network application-gateway ssl-cert`), then name it in a listener's `ssl_certificate_name`.
 
 **`http_listeners`**: List of HTTP Listeners to be created. Each list item should define
     - `name` : Name of the listener

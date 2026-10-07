@@ -243,4 +243,12 @@ resource "azurerm_application_gateway" "main" {
   }
 
   tags = var.tags
+
+  # Certificates are only read from the configuration when the gateway is
+  # created. Afterwards the ones on the gateway are kept, including any added
+  # or renewed outside Terraform: the provider can't name an existing
+  # certificate without its PFX data or Key Vault secret.
+  lifecycle {
+    ignore_changes = [ssl_certificate]
+  }
 }
